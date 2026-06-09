@@ -6,21 +6,21 @@
   <title>タイムラインビューワー</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, sans-serif; background: #f7f7f7; height: 100vh; display: flex; flex-direction: column; }
+    body { font-family: -apple-system, sans-serif; background: #f7f7f7; }
+
     header {
       background: #000;
       padding: 12px 20px;
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-shrink: 0;
     }
     header h1 { color: #fff; font-size: 16px; font-weight: 500; }
+
     .tabs {
       display: flex;
       background: #fff;
       border-bottom: 1px solid #e5e5e5;
-      flex-shrink: 0;
     }
     .tab-btn {
       background: none;
@@ -37,56 +37,175 @@
       border-bottom: 2px solid #000;
       font-weight: 500;
     }
-    .frame-wrap {
-      flex: 1;
-      position: relative;
-    }
-    iframe {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      border: none;
-      display: none;
-    }
-    iframe.active { display: block; }
-    .loading-msg {
-      position: absolute;
-      top: 40px; left: 0; right: 0;
+
+    .panel { display: none; max-width: 600px; margin: 0 auto; padding: 16px; }
+    .panel.active { display: block; }
+
+    .status {
       text-align: center;
+      padding: 40px 20px;
       color: #999;
       font-size: 14px;
-      pointer-events: none;
+    }
+
+    .tweet {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .tweet-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .tweet-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .tweet-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #000;
+    }
+    .tweet-handle {
+      font-size: 13px;
+      color: #666;
+    }
+    .tweet-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #000;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .tweet-date {
+      font-size: 12px;
+      color: #999;
+    }
+    .tweet a {
+      color: #1d9bf0;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  <header>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    </svg>
-    <h1>タイムラインビューワー</h1>
-  </header>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="showTab(0)">@shine_uk</button>
-    <button class="tab-btn"        onclick="showTab(1)">@openai</button>
-  </div>
+<header>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+  <h1>タイムラインビューワー</h1>
+</header>
 
-  <div class="frame-wrap">
-    <div class="loading-msg">読み込み中...</div>
-    <iframe id="frame-0" class="active" src="https://nitter.net/shine_uk"></iframe>
-    <iframe id="frame-1"               src="https://nitter.net/openai"></iframe>
-  </div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(0)">@shine_uk</button>
+  <button class="tab-btn"        onclick="showTab(1)">@openai</button>
+</div>
 
-  <script>
-    function showTab(n) {
-      document.querySelectorAll('.tab-btn').forEach(function(b, i) {
-        b.classList.toggle('active', i === n);
+<div class="panel active" id="panel-0"><div class="status">読み込み中...</div></div>
+<div class="panel"        id="panel-1"></div>
+
+<script>
+  var GAS_URL = 'https://script.google.com/macros/s/AKfycbyg7Nr_svaqhf9m3ZK_w8KDfPFfHIl-EeVT-lwj3BSmspudkFIqANW_0Ou45yKnMgaq/exec';
+  var accounts = ['shine_uk', 'openai'];
+  var loaded = [false, false];
+
+  function showTab(n) {
+    document.querySelectorAll('.tab-btn').forEach(function(b, i) {
+      b.classList.toggle('active', i === n);
+    });
+    document.querySelectorAll('.panel').forEach(function(p, i) {
+      p.classList.toggle('active', i === n);
+    });
+    loadFeed(n);
+  }
+
+  function loadFeed(n) {
+    if (loaded[n]) return;
+    loaded[n] = true;
+
+    var panel = document.getElementById('panel-' + n);
+    panel.innerHTML = '<div class="status">読み込み中...</div>';
+
+    var url = GAS_URL + '?account=' + accounts[n];
+
+    fetch(url)
+      .then(function(res) { return res.text(); })
+      .then(function(text) { renderFeed(panel, text, accounts[n]); })
+      .catch(function(err) {
+        panel.innerHTML = '<div class="status">読み込みに失敗しました。<br>しばらくしてから再試行してください。</div>';
       });
-      document.querySelectorAll('iframe').forEach(function(f, i) {
-        f.classList.toggle('active', i === n);
+  }
+
+  function renderFeed(panel, xmlText, account) {
+    try {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(xmlText, 'text/xml');
+      var items = doc.querySelectorAll('item');
+
+      if (items.length === 0) {
+        panel.innerHTML = '<div class="status">ツイートが取得できませんでした。</div>';
+        return;
+      }
+
+      var initial = account.charAt(0).toUpperCase();
+      var html = '';
+
+      items.forEach(function(item) {
+        var title = item.querySelector('title') ? item.querySelector('title').textContent : '';
+        var desc  = item.querySelector('description') ? item.querySelector('description').textContent : '';
+        var link  = item.querySelector('link') ? item.querySelector('link').textContent : '#';
+        var pubDate = item.querySelector('pubDate') ? item.querySelector('pubDate').textContent : '';
+
+        // descriptionからHTMLタグを除去してテキスト抽出
+        var tmp = document.createElement('div');
+        tmp.innerHTML = desc;
+        var bodyText = tmp.textContent || tmp.innerText || title;
+
+        // 日付フォーマット
+        var dateStr = '';
+        if (pubDate) {
+          var d = new Date(pubDate);
+          dateStr = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate()
+                  + ' ' + d.getHours() + ':' + ('0'+d.getMinutes()).slice(-2);
+        }
+
+        html += '<div class="tweet">'
+              + '<div class="tweet-header">'
+              + '<div class="tweet-avatar">' + initial + '</div>'
+              + '<div><div class="tweet-name">@' + account + '</div></div>'
+              + '</div>'
+              + '<div class="tweet-body">' + escapeHtml(bodyText).replace(/\n/g, '<br>') + '</div>'
+              + '<div class="tweet-date">' + dateStr + '</div>'
+              + '</div>';
       });
+
+      panel.innerHTML = html;
+    } catch(e) {
+      panel.innerHTML = '<div class="status">パースエラーが発生しました。</div>';
     }
-  </script>
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // 初期読み込み
+  loadFeed(0);
+</script>
+
 </body>
 </html>
