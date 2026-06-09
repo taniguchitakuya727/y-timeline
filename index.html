@@ -13,30 +13,55 @@
       padding: 12px 20px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
     }
+    .header-left { display: flex; align-items: center; gap: 10px; }
     header h1 { color: #fff; font-size: 16px; font-weight: 500; }
+    .add-btn {
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
     .tabs {
       display: flex;
       background: #fff;
       border-bottom: 1px solid #e5e5e5;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
-      padding: 12px 24px;
+      padding: 12px 8px 12px 16px;
       font-size: 14px;
       cursor: pointer;
       color: #666;
       font-family: -apple-system, sans-serif;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .tab-btn.active {
-      color: #000;
-      border-bottom: 2px solid #000;
-      font-weight: 500;
+    .tab-btn.active { color: #000; border-bottom: 2px solid #000; font-weight: 500; }
+    .tab-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #999;
+      font-size: 14px;
+      padding: 2px 4px;
+      border-radius: 50%;
+      line-height: 1;
     }
+    .tab-close:hover { background: #eee; color: #000; }
 
     .panel { display: none; max-width: 600px; margin: 0 auto; padding: 16px; }
     .panel.active { display: block; }
@@ -62,68 +87,134 @@
       margin-bottom: 8px;
     }
     .tweet-avatar {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       border-radius: 50%;
       background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 14px; font-weight: 600;
       flex-shrink: 0;
     }
-    .tweet-name {
-      font-weight: 600;
-      font-size: 14px;
-      color: #000;
-    }
-    .tweet-handle {
-      font-size: 13px;
-      color: #666;
-    }
+    .tweet-name { font-weight: 600; font-size: 14px; color: #000; }
+    .tweet-handle { font-size: 13px; color: #666; }
     .tweet-body {
+      font-size: 15px; line-height: 1.6; color: #000;
+      margin-bottom: 8px; white-space: pre-wrap; word-break: break-word;
+    }
+    .tweet-date { font-size: 12px; color: #999; }
+
+    /* モーダル */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      width: 300px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .modal h2 { font-size: 16px; font-weight: 600; }
+    .modal input {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px 12px;
       font-size: 15px;
-      line-height: 1.6;
-      color: #000;
-      margin-bottom: 8px;
-      white-space: pre-wrap;
-      word-break: break-word;
+      font-family: -apple-system, sans-serif;
+      width: 100%;
     }
-    .tweet-date {
-      font-size: 12px;
-      color: #999;
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns button {
+      flex: 1; padding: 10px;
+      border-radius: 8px; border: none;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: -apple-system, sans-serif;
     }
-    .tweet a {
-      color: #1d9bf0;
-      text-decoration: none;
-    }
+    .btn-cancel { background: #f0f0f0; color: #000; }
+    .btn-ok { background: #000; color: #fff; }
   </style>
 </head>
 <body>
 
 <header>
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-  </svg>
-  <h1>タイムラインビューワー</h1>
+  <div class="header-left">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+    <h1>タイムラインビューワー</h1>
+  </div>
+  <button class="add-btn" onclick="openModal()">＋ 追加</button>
 </header>
 
-<div class="tabs">
-  <button class="tab-btn active" onclick="showTab(0)">@shine_uk</button>
-  <button class="tab-btn"        onclick="showTab(1)">@openai</button>
-</div>
+<div class="tabs" id="tabs"></div>
+<div id="panels"></div>
 
-<div class="panel active" id="panel-0"><div class="status">読み込み中...</div></div>
-<div class="panel"        id="panel-1"></div>
+<!-- 追加モーダル -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>アカウントを追加</h2>
+    <input type="text" id="modal-input" placeholder="例: elonmusk（@なし）" />
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-ok" onclick="addAccount()">追加</button>
+    </div>
+  </div>
+</div>
 
 <script>
   var GAS_URL = 'https://script.google.com/macros/s/AKfycbyg7Nr_svaqhf9m3ZK_w8KDfPFfHIl-EeVT-lwj3BSmspudkFIqANW_0Ou45yKnMgaq/exec';
-  var accounts = ['shine_uk', 'openai'];
-  var loaded = [false, false];
+  var accounts = [];
+  var loaded = {};
+  var currentTab = 0;
+
+  // 初期化：スプレッドシートからアカウント一覧取得
+  fetch(GAS_URL + '?action=list')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      accounts = data.accounts || [];
+      if (accounts.length === 0) accounts = ['shine_uk', 'openai'];
+      renderTabs();
+      showTab(0);
+    })
+    .catch(function() {
+      accounts = ['shine_uk', 'openai'];
+      renderTabs();
+      showTab(0);
+    });
+
+  function renderTabs() {
+    var tabsEl = document.getElementById('tabs');
+    var panelsEl = document.getElementById('panels');
+    tabsEl.innerHTML = '';
+    panelsEl.innerHTML = '';
+
+    accounts.forEach(function(acct, i) {
+      // タブ
+      var btn = document.createElement('button');
+      btn.className = 'tab-btn' + (i === currentTab ? ' active' : '');
+      btn.innerHTML = '@' + acct
+        + '<span class="tab-close" onclick="confirmRemove(event,' + i + ')">✕</span>';
+      btn.onclick = function(e) {
+        if (e.target.classList.contains('tab-close')) return;
+        showTab(i);
+      };
+      tabsEl.appendChild(btn);
+
+      // パネル
+      var panel = document.createElement('div');
+      panel.className = 'panel' + (i === currentTab ? ' active' : '');
+      panel.id = 'panel-' + i;
+      panel.innerHTML = '<div class="status">読み込み中...</div>';
+      panelsEl.appendChild(panel);
+    });
+  }
 
   function showTab(n) {
+    currentTab = n;
     document.querySelectorAll('.tab-btn').forEach(function(b, i) {
       b.classList.toggle('active', i === n);
     });
@@ -134,19 +225,18 @@
   }
 
   function loadFeed(n) {
-    if (loaded[n]) return;
-    loaded[n] = true;
+    var acct = accounts[n];
+    if (loaded[acct]) return;
+    loaded[acct] = true;
 
     var panel = document.getElementById('panel-' + n);
     panel.innerHTML = '<div class="status">読み込み中...</div>';
 
-    var url = GAS_URL + '?account=' + accounts[n];
-
-    fetch(url)
-      .then(function(res) { return res.text(); })
-      .then(function(text) { renderFeed(panel, text, accounts[n]); })
-      .catch(function(err) {
-        panel.innerHTML = '<div class="status">読み込みに失敗しました。<br>しばらくしてから再試行してください。</div>';
+    fetch(GAS_URL + '?action=rss&account=' + acct)
+      .then(function(r) { return r.text(); })
+      .then(function(text) { renderFeed(panel, text, acct); })
+      .catch(function() {
+        panel.innerHTML = '<div class="status">読み込みに失敗しました。</div>';
       });
   }
 
@@ -155,44 +245,31 @@
       var parser = new DOMParser();
       var doc = parser.parseFromString(xmlText, 'text/xml');
       var items = doc.querySelectorAll('item');
-
       if (items.length === 0) {
         panel.innerHTML = '<div class="status">ツイートが取得できませんでした。</div>';
         return;
       }
-
       var initial = account.charAt(0).toUpperCase();
       var html = '';
-
       items.forEach(function(item) {
-        var title = item.querySelector('title') ? item.querySelector('title').textContent : '';
-        var desc  = item.querySelector('description') ? item.querySelector('description').textContent : '';
-        var link  = item.querySelector('link') ? item.querySelector('link').textContent : '#';
+        var desc = item.querySelector('description') ? item.querySelector('description').textContent : '';
         var pubDate = item.querySelector('pubDate') ? item.querySelector('pubDate').textContent : '';
-
-        // descriptionからHTMLタグを除去してテキスト抽出
         var tmp = document.createElement('div');
         tmp.innerHTML = desc;
-        var bodyText = tmp.textContent || tmp.innerText || title;
-
-        // 日付フォーマット
+        var bodyText = tmp.textContent || tmp.innerText || '';
         var dateStr = '';
         if (pubDate) {
           var d = new Date(pubDate);
           dateStr = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate()
                   + ' ' + d.getHours() + ':' + ('0'+d.getMinutes()).slice(-2);
         }
-
         html += '<div class="tweet">'
-              + '<div class="tweet-header">'
-              + '<div class="tweet-avatar">' + initial + '</div>'
-              + '<div><div class="tweet-name">@' + account + '</div></div>'
-              + '</div>'
-              + '<div class="tweet-body">' + escapeHtml(bodyText).replace(/\n/g, '<br>') + '</div>'
+              + '<div class="tweet-header"><div class="tweet-avatar">' + initial + '</div>'
+              + '<div><div class="tweet-name">@' + account + '</div></div></div>'
+              + '<div class="tweet-body">' + escapeHtml(bodyText).replace(/\n/g,'<br>') + '</div>'
               + '<div class="tweet-date">' + dateStr + '</div>'
               + '</div>';
       });
-
       panel.innerHTML = html;
     } catch(e) {
       panel.innerHTML = '<div class="status">パースエラーが発生しました。</div>';
@@ -203,9 +280,59 @@
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // 初期読み込み
-  loadFeed(0);
-</script>
+  // モーダル
+  function openModal() {
+    document.getElementById('modal-input').value = '';
+    document.getElementById('modal').classList.add('show');
+    document.getElementById('modal-input').focus();
+  }
+  function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+  }
+  function addAccount() {
+    var val = document.getElementById('modal-input').value.trim().replace('@','');
+    if (!val) return;
+    closeModal();
+    fetch(GAS_URL + '?action=add&account=' + val)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          accounts.push(val);
+          renderTabs();
+          showTab(accounts.length - 1);
+        } else {
+          alert('追加できませんでした: ' + (data.error || ''));
+        }
+      });
+  }
 
+  // 削除
+  function confirmRemove(e, i) {
+    e.stopPropagation();
+    if (!confirm('@' + accounts[i] + ' を削除しますか？')) return;
+    var acct = accounts[i];
+    fetch(GAS_URL + '?action=remove&account=' + acct)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          accounts.splice(i, 1);
+          delete loaded[acct];
+          currentTab = Math.min(currentTab, accounts.length - 1);
+          renderTabs();
+          if (accounts.length > 0) showTab(currentTab);
+        }
+      });
+  }
+
+  // モーダル外クリックで閉じる
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Enterキーで追加
+  document.getElementById('modal-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addAccount();
+  });
+</script>
 </body>
 </html>
