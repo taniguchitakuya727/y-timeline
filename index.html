@@ -7,48 +7,107 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, sans-serif; background: #f7f7f7; }
-    header { background: #000; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
-    header h1 { color: #fff; font-size: 16px; font-weight: 500; }
-    .tabs { display: flex; background: #fff; border-bottom: 1px solid #e5e5e5; overflow-x: auto; }
-    .tab-btn {
-      background: none; border: none; border-bottom: 2px solid transparent;
-      padding: 12px 20px; font-size: 14px; cursor: pointer; white-space: nowrap;
-      color: #666;
+    header {
+      background: #000;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .tab-btn.active { color: #000; border-bottom: 2px solid #000; font-weight: 500; }
+    header h1 { color: #fff; font-size: 16px; font-weight: 500; }
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 12px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #666;
+      font-family: -apple-system, sans-serif;
+    }
+    .tab-btn.active {
+      color: #000;
+      border-bottom: 2px solid #000;
+      font-weight: 500;
+    }
     .panel { display: none; max-width: 600px; margin: 0 auto; padding: 20px; }
     .panel.active { display: block; }
-    .twitter-timeline { display: block; }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
     <h1>タイムラインビューワー</h1>
   </header>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab(0)" id="btn-0">@shine_uk</button>
-    <button class="tab-btn" onclick="showTab(1)" id="btn-1">@openai</button>
+    <button class="tab-btn"        onclick="showTab(1)" id="btn-1">@openai</button>
   </div>
 
   <div class="panel active" id="panel-0">
-    <a class="twitter-timeline" data-height="600" href="https://twitter.com/shine_uk?ref_src=twsrc%5Etfw">Tweets by @shine_uk</a>
+    <div class="loading">読み込み中...</div>
   </div>
-  <div class="panel" id="panel-1">
-    <a class="twitter-timeline" data-height="600" href="https://twitter.com/openai?ref_src=twsrc%5Etfw">Tweets by @openai</a>
-  </div>
+  <div class="panel" id="panel-1"></div>
 
-  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
   <script>
+    var accounts = ['shine_uk', 'openai'];
+    var loaded = [false, false];
+
+    // Xウィジェットスクリプトを動的に読み込む関数
+    function loadWidget(index) {
+      if (loaded[index]) return;
+      loaded[index] = true;
+
+      var panel = document.getElementById('panel-' + index);
+      panel.innerHTML = '<div class="loading">読み込み中...</div>';
+
+      var anchor = document.createElement('a');
+      anchor.className = 'twitter-timeline';
+      anchor.setAttribute('data-height', '600');
+      anchor.setAttribute('data-chrome', 'noheader nofooter noborders');
+      anchor.href = 'https://twitter.com/' + accounts[index] + '?ref_src=twsrc%5Etfw';
+      anchor.textContent = 'Tweets by @' + accounts[index];
+      panel.innerHTML = '';
+      panel.appendChild(anchor);
+
+      // スクリプトを毎回新規作成して強制実行
+      if (window.twttr && window.twttr.widgets) {
+        window.twttr.widgets.load(panel);
+      } else {
+        var script = document.createElement('script');
+        script.src = 'https://platform.twitter.com/widgets.js';
+        script.async = true;
+        script.charset = 'utf-8';
+        document.body.appendChild(script);
+      }
+    }
+
     function showTab(n) {
-      document.querySelectorAll('.panel').forEach((p,i) => {
+      document.querySelectorAll('.panel').forEach(function(p, i) {
         p.classList.toggle('active', i === n);
       });
-      document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      document.querySelectorAll('.tab-btn').forEach(function(b, i) {
         b.classList.toggle('active', i === n);
       });
+      loadWidget(n);
     }
+
+    // 最初のタブを読み込む
+    loadWidget(0);
   </script>
 </body>
 </html>
