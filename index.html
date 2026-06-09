@@ -6,19 +6,21 @@
   <title>タイムラインビューワー</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, sans-serif; background: #f7f7f7; }
+    body { font-family: -apple-system, sans-serif; background: #f7f7f7; height: 100vh; display: flex; flex-direction: column; }
     header {
       background: #000;
       padding: 12px 20px;
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-shrink: 0;
     }
     header h1 { color: #fff; font-size: 16px; font-weight: 500; }
     .tabs {
       display: flex;
       background: #fff;
       border-bottom: 1px solid #e5e5e5;
+      flex-shrink: 0;
     }
     .tab-btn {
       background: none;
@@ -35,13 +37,25 @@
       border-bottom: 2px solid #000;
       font-weight: 500;
     }
-    .panel { display: none; max-width: 600px; margin: 0 auto; padding: 20px; }
-    .panel.active { display: block; }
-    .loading {
+    .frame-wrap {
+      flex: 1;
+      position: relative;
+    }
+    iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      display: none;
+    }
+    iframe.active { display: block; }
+    .loading-msg {
+      position: absolute;
+      top: 40px; left: 0; right: 0;
       text-align: center;
-      padding: 40px;
       color: #999;
       font-size: 14px;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -54,60 +68,25 @@
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab(0)" id="btn-0">@shine_uk</button>
-    <button class="tab-btn"        onclick="showTab(1)" id="btn-1">@openai</button>
+    <button class="tab-btn active" onclick="showTab(0)">@shine_uk</button>
+    <button class="tab-btn"        onclick="showTab(1)">@openai</button>
   </div>
 
-  <div class="panel active" id="panel-0">
-    <div class="loading">読み込み中...</div>
+  <div class="frame-wrap">
+    <div class="loading-msg">読み込み中...</div>
+    <iframe id="frame-0" class="active" src="https://nitter.net/shine_uk"></iframe>
+    <iframe id="frame-1"               src="https://nitter.net/openai"></iframe>
   </div>
-  <div class="panel" id="panel-1"></div>
 
   <script>
-    var accounts = ['shine_uk', 'openai'];
-    var loaded = [false, false];
-
-    // Xウィジェットスクリプトを動的に読み込む関数
-    function loadWidget(index) {
-      if (loaded[index]) return;
-      loaded[index] = true;
-
-      var panel = document.getElementById('panel-' + index);
-      panel.innerHTML = '<div class="loading">読み込み中...</div>';
-
-      var anchor = document.createElement('a');
-      anchor.className = 'twitter-timeline';
-      anchor.setAttribute('data-height', '600');
-      anchor.setAttribute('data-chrome', 'noheader nofooter noborders');
-      anchor.href = 'https://twitter.com/' + accounts[index] + '?ref_src=twsrc%5Etfw';
-      anchor.textContent = 'Tweets by @' + accounts[index];
-      panel.innerHTML = '';
-      panel.appendChild(anchor);
-
-      // スクリプトを毎回新規作成して強制実行
-      if (window.twttr && window.twttr.widgets) {
-        window.twttr.widgets.load(panel);
-      } else {
-        var script = document.createElement('script');
-        script.src = 'https://platform.twitter.com/widgets.js';
-        script.async = true;
-        script.charset = 'utf-8';
-        document.body.appendChild(script);
-      }
-    }
-
     function showTab(n) {
-      document.querySelectorAll('.panel').forEach(function(p, i) {
-        p.classList.toggle('active', i === n);
-      });
       document.querySelectorAll('.tab-btn').forEach(function(b, i) {
         b.classList.toggle('active', i === n);
       });
-      loadWidget(n);
+      document.querySelectorAll('iframe').forEach(function(f, i) {
+        f.classList.toggle('active', i === n);
+      });
     }
-
-    // 最初のタブを読み込む
-    loadWidget(0);
   </script>
 </body>
 </html>
